@@ -35,6 +35,15 @@
       READ(1,*) N0, LF, JF
       JF = JF*LZ2
       LS = 1*LZ2
+      PRINT 2001, N1+N2, KZ1+KZ2, N1+N2-KZ1-KZ2
+      WRITE(2,2001) N1+N2, KZ1+KZ2, N1+N2-KZ1-KZ2
+      
+      IF(KZ2.EQ.1) PRINT 2002, 'PROTON', N1, KZ1, N1-KZ1
+      IF(KZ2.EQ.1) WRITE(2,2002) 'PROTON', N1, KZ1, N1-KZ1
+      IF(KZ2.EQ.0) PRINT 2002, 'NEUTRON', N1, KZ1, N1-KZ1
+      IF(KZ2.EQ.0) WRITE(2,2002) 'NEUTRON', N1, KZ1, N1-KZ1
+ 2001 FORMAT('THE NUCLEUS WITH A =', I3, '; Z =', I2, '; N =', I2) 
+ 2002 FORMAT(A7,' + CORE NUCLEUS WITH A =' I3, '; Z =',I2, '; N =', I2) 
 
 ! READ THE POTENTIAL
       PRINT*, 'THE POTENTIAL'
@@ -46,10 +55,8 @@
        READ(1,*) V0, V1, A0, R0, RC
        PRINT*, 'CENTRAL POTENTIAL IS OF WS FORM' 
        WRITE(2,*)'CENTRAL POTENTIAL IS OF WS FORM'
-       PRINT 2003, 'WITH V0 =', V0, 'MeV', 'V1 =', V1, 'MeV',
-     &             'R0 = ', R0, 'fm', 'a0 =', A0, 'fm'    
-       WRITE(2,2003)'WITH V0 =', V0, 'MeV', 'V1 =', V1, 'MeV',
-     &             'R0 = ', R0, 'fm', 'a0 =', A0, 'fm'    
+       PRINT 2003, V0, V1, R0, A0    
+       WRITE(2,2003) V0, V1, R0, A0    
       END IF
       
       READ(1,*) NOTE
@@ -59,10 +66,8 @@
        READ(1,*) VSO, ASO, RSO, QSO
        PRINT*, 'SPIN-ORBIT POTENTIAL IS OF DERIVATIVE OF WS'
        WRITE(2,*)'SPIN-ORBIT POTENTIAL IS OF DERIVATIVE OF WS'
-       PRINT 2004, 'WITH VSO =', VSO, 'MeV', 'RSO = ', RSO, 'fm', 
-     &              'aSO =', ASO, 'fm'  
-       WRITE(2,2004)'WITH VSO =', VSO, 'MeV', 'RSO = ', RSO, 'fm', 
-     &              'aSO =', ASO, 'fm'  
+       PRINT 2004, VSO, RSO, ASO 
+       WRITE(2,2004) VSO, RSO, ASO  
       END IF
       
       IF (RC.GE.0.0000001) THEN
@@ -70,14 +75,16 @@
      &      'COULOMB POTENTIAL IS USED FOR UNIFORM CHARGED DISTRIBUTION'
        WRITE(2,*)
      &      'COULOMB POTENTIAL IS USED FOR UNIFORM CHARGED DISTRIBUTION'
-       PRINT 2005, 'WITH THE COULOMB RADIUS RC =', RC, 'fm'
-       WRITE(2,2005) 'WITH THE COULOMB RADIUS RC =', RC, 'fm'
+       PRINT 2005, RC
+       WRITE(2,2005) RC
       END IF
 ! END READ THE POTENTIAL
 
- 2003 FORMAT(A10, F8.2, A4, A10, F8.2, A4, A9, F5.3, A3, A7, F5.2, A3)
- 2004 FORMAT(A11, F6.2, A4, A9, F5.3, A3, A7, F5.2, A3)
- 2005 FORMAT(A29, F6.3, A3)
+ 2003 FORMAT('WITH V0 =', F8.2, ' MeV;     V1 =', F8.2, ' MeV;   R0 = ', 
+     &        F5.3, ' fm;   a0 =', F5.2, ' fm')
+ 2004 FORMAT('WITH VSO =', F6.2,' MeV;     RSO = ', F5.3,' fm;   aSO =', 
+     &        F5.2, ' fm')
+ 2005 FORMAT('WITH THE COULOMB RADIUS RC =', F6.3, ' fm')
  
 ! COMPUTING THE FINAL POTENTIAL (POTF)
       UMAX = 0 
@@ -89,9 +96,9 @@
       IF (KPOT.EQ.0) THEN
        DO I = 1, N
         IF (KZ2.EQ.1) THEN
-         DV0(I) = (V0+ V1*(A1-2*KZ1)/A1)/(1+EXP((DRI(I)-R0)/A0)) 
+         DV0(I) = (V0+V1*(AMA-2*(KZ1+KZ2))/AMA)/(1+EXP((DRI(I)-R0)/A0)) 
         ELSE IF (KZ2.EQ.0) THEN
-         DV0(I) = (V0- V1*(A1-2*KZ1)/A1)/(1+EXP((DRI(I)-R0)/A0)) 
+         DV0(I) = (V0-V1*(AMA-2*(KZ1+KZ2))/AMA)/(1+EXP((DRI(I)-R0)/A0))
         END IF
        END DO
       END IF
@@ -123,11 +130,12 @@
       END DO
       
 C  PRINT POTENTIALS
-      WRITE(3,2006)'R (fm)', 'VCEN (MeV)', 'V*l.sig (MeV)', 
-     &              'VNUCL (MeV)', 'VCOUL (MeV)', 'VTOTAL (MeV)', 'VEFF'
+      WRITE(3,2006)'R (fm)', 'V0+V1 (MeV)', 'VSO*LSI (MeV)', 
+     &              'VNUCL (MeV)', 'VCOUL (MeV)', 'VTOTAL (MeV)', 
+     &              'VCENTRI (MeV)', 'VEFF (MeV)'
       DO I = 1, N
        WRITE(3,2007) DRI(I), DV0(I), ZF*DVSO(I), DVNU(I), DVCOU(I), 
-     &               DVNU(I)+DVCOU(I), DPOT(I)
+     &               DVNU(I)+DVCOU(I), DVCE(I)/RM, DPOT(I)/RM
       END DO
       
 
@@ -149,8 +157,8 @@ C COMPUTING THE FINAL ENERGY (EBOUND) AND WAVE FUNCTION (WFF)
        WRITE(4,2010) DRI(I), WF(I), WF(I)**2
       END DO
 
- 2006 FORMAT(A10, 6(A15))
- 2007 FORMAT(F10.3, 6(F15.6))
+ 2006 FORMAT(A10, 7(A15))
+ 2007 FORMAT(F10.3, 7(F15.6))
  2008 FORMAT(A24, F8.3, A4)
  2009 FORMAT(A10, A15, A15)
  2010 FORMAT(F10.3, F15.6, F15.6)
