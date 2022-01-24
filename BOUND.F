@@ -52,18 +52,18 @@
       READ(1,*) KPOT
       IF (KPOT.EQ.0) THEN
        READ(1,*) NOTE
-       READ(1,*) V0, V1, A0, R0, RC
+       READ(1,*) V0, V1, A0, R0, RC, Q
        PRINT*, 'CENTRAL POTENTIAL IS OF WS FORM' 
        WRITE(2,*)'CENTRAL POTENTIAL IS OF WS FORM'
-       PRINT 2003, V0, V1, R0, A0    
-       WRITE(2,2003) V0, V1, R0, A0    
+       PRINT 2003, V0, V1, R0, A0, Q    
+       WRITE(2,2003) V0, V1, R0, A0, Q    
       END IF
       
       READ(1,*) NOTE
       READ(1,*) KSO
       IF (KSO.EQ.0) THEN
        READ(1,*) NOTE
-       READ(1,*) VSO, ASO, RSO, QSO
+       READ(1,*) VSO, ASO, RSO
        PRINT*, 'SPIN-ORBIT POTENTIAL IS OF DERIVATIVE OF WS'
        WRITE(2,*)'SPIN-ORBIT POTENTIAL IS OF DERIVATIVE OF WS'
        PRINT 2004, VSO, RSO, ASO 
@@ -78,15 +78,14 @@
        PRINT 2005, RC
        WRITE(2,2005) RC
       END IF
-! END READ THE POTENTIAL
 
  2003 FORMAT('WITH V0 =', F8.2, ' MeV;     V1 =', F8.2, ' MeV;   R0 = ', 
-     &        F5.3, ' fm;   a0 =', F5.2, ' fm')
+     &        F5.3, ' fm;   a0 =', F5.2, ' fm;     Q =', F5.2)
  2004 FORMAT('WITH VSO =', F6.2,' MeV;     RSO = ', F5.3,' fm;   aSO =', 
      &        F5.2, ' fm')
  2005 FORMAT('WITH THE COULOMB RADIUS RC =', F6.3, ' fm')
  
-! COMPUTING THE FINAL POTENTIAL (POTF)
+! COMPUTE THE POTENTIAL
       UMAX = 0 
       ZF = (JF*(JF + 2) - LS*(LS + 2) - 4*LF*(LF + 1))/4.0 
       DO I = 1, N
@@ -96,16 +95,16 @@
       IF (KPOT.EQ.0) THEN
        DO I = 1, N
         IF (KZ2.EQ.1) THEN
-         DV0(I) = (V0+V1*(AMA-2*(KZ1+KZ2))/AMA)/(1+EXP((DRI(I)-R0)/A0)) 
+         DV0(I) =(V0+V1*(AMA-2*(KZ1+KZ2))/AMA)/(1+Q*EXP((DRI(I)-R0)/A0)) 
         ELSE IF (KZ2.EQ.0) THEN
-         DV0(I) = (V0-V1*(AMA-2*(KZ1+KZ2))/AMA)/(1+EXP((DRI(I)-R0)/A0))
+         DV0(I) =(V0-V1*(AMA-2*(KZ1+KZ2))/AMA)/(1+Q*EXP((DRI(I)-R0)/A0))
         END IF
        END DO
       END IF
       
       IF (KSO.EQ.0) THEN
        DO I = 1, N
-        DEXPF(I) = 1/(1+QSO*EXP((DRI(I) - RSO)/ASO))
+        DEXPF(I) = 1/(1+Q*EXP((DRI(I) - RSO)/ASO))
        END DO
        CALL DER1(DEXPF, DERDEXPF, N, H)
        DO I = 1, N
@@ -129,7 +128,7 @@
        DPOT(I) = (DVNU(I)+DVCOU(I))*RM + DVCE(I)
       END DO
       
-C  PRINT POTENTIALS
+!  PRINT POTENTIALS
       WRITE(3,2006)'R (fm)', 'V0+V1 (MeV)', 'VSO*LSI (MeV)', 
      &              'VNUCL (MeV)', 'VCOUL (MeV)', 'VTOTAL (MeV)', 
      &              'VCENTRI (MeV)', 'VEFF (MeV)'
@@ -139,11 +138,13 @@ C  PRINT POTENTIALS
       END DO
       
 
-C COMPUTING THE FINAL ENERGY (EBOUND) AND WAVE FUNCTION (WFF)
+! COMPUTE SINGLE-PARTICLE ENERGY 
       S2 = 0
       UMAX = 0.d0
       CALL NUM1L(N, H, E, S2, DPOT, WF, N0, EPS)
-      EBOUND = (E + UMAX)/RM 
+      EBOUND = (E + UMAX)/RM
+      
+! PRINT SINGLE-PARTICLE ENERGY
       IF(E.GE.0) THEN
        PRINT *, 'THERE IS NO BOUND STATE'
        WRITE(2,*) 'THERE IS NO BOUND STATE'
@@ -153,9 +154,7 @@ C COMPUTING THE FINAL ENERGY (EBOUND) AND WAVE FUNCTION (WFF)
       END IF
       
 
-
-
-! PRINT WAVE FUNCTION      
+! PRINT BOUND WAVE FUNCTION OF SINGLE-PARTICLE      
       WRITE(4,*) 'BOUND WAVE FUNCTION'
       WRITE(4,2009) 'R (fm)', 'PHI', 'PHI**2'
       DO I = 1, N
@@ -167,6 +166,8 @@ C COMPUTING THE FINAL ENERGY (EBOUND) AND WAVE FUNCTION (WFF)
  2008 FORMAT(A24, F8.3, A4)
  2009 FORMAT(A10, A15, A15)
  2010 FORMAT(F10.3, F15.6, F15.6)
+ 
+ !
  
       END PROGRAM
       
