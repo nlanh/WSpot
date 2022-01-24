@@ -6,9 +6,9 @@
  0   1   1 
 CENTRAL KEYPOT FOR BOUND STATES
  0
- V0        V1        A0        R0        RC
- -47.09    -10.      0.70      3.322     3.322
+ V0        V1        A0        R0        RC        Q
+ -47.09    -10.      0.70      3.322     3.322     1.000
 SPIN-ORBIT KEYPOT FOR BOUND STATES
  0
- VS0       AS0       RS0       Q
- -6.15     0.70      3.231     1.000
+ VS0       AS0       RS0   
+ -6.15     0.70      3.231   
