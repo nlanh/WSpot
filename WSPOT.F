@@ -6,7 +6,8 @@
      &          DVSO(NMAX),DVCOU(NMAX),DVNU(NMAX),DVCE(NMAX),DPOT(NMAX),
      &          WFB(NMAX),WFC(NMAX),DPS(NMAX),DWFC(NMAX)
       DATA FSC,AMN,HC,RCOMP/137.036D0,931.494D0,197.327D0,1.4138/
-      DATA PI/3.1415926535D0/ ,EPS/1D-3/
+!      DATA FSC,AMN,HC,RCOMP/1.0D0,1.0D0,1.0D0,1.00/
+      DATA PI/3.1415926535D0/ ,EPS/1D-5/
       E2 = HC/FSC
       HM = HC*HC/2/AMN
       OPEN(1, FILE='WSPOT.INP', FORM='FORMATTED', STATUS='OLD')
@@ -14,7 +15,7 @@
       OPEN(3, FILE='BOUND.OUT', FORM='FORMATTED')
       OPEN(4, FILE='SCATT.OUT', FORM='FORMATTED')
       
-      PRINT *, 'THE CALCULATION FOR BOUND AND SCATTERING STATE'
+      PRINT *, 'THE CALCULATION FOR BOUND AND SCATTERING STATES'
       PRINT *, 'WRITTEN BY N.L.ANH AND B.M.LOC'
       PRINT *, 'SUBROUTINES WERE TAKEN FROM OTHER SOURCES'
       WRITE(2,*) 'THE CALCULATION FOR BOUND AND SCATTERING STATE'
@@ -31,6 +32,7 @@
       LZ2 = 2 - MOD(N2,2)
       AMA = A1 + A2
       RMU = A1*A2/AMA
+!      RMU = 1.0d0
       RM = RMU/HM
       ZE = KZ1*KZ2*E2            
       READ(1,*) NOTE
@@ -44,8 +46,8 @@
       IF(KZ2.EQ.1) WRITE(2,2002) 'PROTON', N1, KZ1, N1-KZ1
       IF(KZ2.EQ.0) PRINT 2002, 'NEUTRON', N1, KZ1, N1-KZ1
       IF(KZ2.EQ.0) WRITE(2,2002) 'NEUTRON', N1, KZ1, N1-KZ1
- 2001 FORMAT('THE NUCLEUS WITH A =', I3, '; Z =', I2, '; N =', I2) 
- 2002 FORMAT(A7,' + CORE NUCLEUS WITH A =',I3, '; Z =',I2, '; N =',I2) 
+ 2001 FORMAT('THE NUCLEUS WITH A =', I3, '; Z =', I3, '; N =', I3) 
+ 2002 FORMAT(A7,' + CORE NUCLEUS WITH A =',I3, '; Z =',I3, '; N =',I3) 
 
 ! READ THE POTENTIAL
       PRINT*, 'THE POTENTIAL'
@@ -95,7 +97,7 @@
  
 ! COMPUTE THE POTENTIAL
       UMAX = 0 
-      ILS = (IJ*(IJ + 2) - IS*(IS + 2) - 4*IL*(IL + 1))/4.0 
+      DILS = (IJ*(IJ + 2) - IS*(IS + 2) - 4*IL*(IL + 1))/4.0 
       DO I = 1, N
        DRI(I) = I*H
       END DO
@@ -131,7 +133,7 @@
       END IF
       
       DO I = 1, N
-       DVNU(I) = DV0(I) + ILS*DVSO(I)
+       DVNU(I) = DV0(I) + DILS*DVSO(I)
        DVCE(I) = IL*(IL+1)/DRI(I)**2
        DPOT(I) = (DVNU(I)+DVCOU(I))*RM + DVCE(I)
       END DO
@@ -141,7 +143,7 @@
      &              'VNUCL (MeV)', 'VCOUL (MeV)', 'VTOTAL (MeV)', 
      &              'VCENTRI (MeV)', 'VEFF (MeV)'
       DO I = 1, N
-       WRITE(2,4002) DRI(I),DV0(I),ILS*DVSO(I), DVNU(I), DVCOU(I), 
+       WRITE(2,4002) DRI(I),DV0(I),DILS*DVSO(I), DVNU(I), DVCOU(I), 
      &               DVNU(I)+DVCOU(I), DVCE(I)/RM, DPOT(I)/RM
       END DO
       
@@ -194,10 +196,13 @@
 
 ! PRINT PHASE SHIFT AND WAVE FUNCTION
       WRITE(4,6001) IL, IJ
-      WRITE(4,6002) 'ENERGY (MEV)', 'PHASE SHIFT (RAD)'
+      WRITE(4,6002) 'ENERGY (MEV)', 'PHASE SHIFT (RAD)', 
+     &               'WAVE NUMBER (FM-1)', 'SCATTERING LENGTH (FM-1)'
       DO IE = 1,NE
-       WRITE(4,6003) IE*DE, DPS(IE)
+       WRITE(4,6003) IE*DE, DPS(IE), SQRT(IE*DE*RM), 
+     &               SQRT(IE*DE*RM)/TAN(DPS(IE))
       END DO
+      WRITE(4,*) '**************************************************'
       WRITE(4,6004) 'SCATTERING WAVE FUNCTION AT E = ', NEP*DE, ' MeV'
       WRITE(4,5003) 'R (fm)', 'PSI', 'PSI**2'
       DO I = 1, N
@@ -205,8 +210,8 @@
       END DO 
 
  6001 FORMAT('THE SINGLE-PARTICLE STATE: l =',I3, '; j =',I3)
- 6002 FORMAT(A20,A20)
- 6003 FORMAT(F20.3,F20.5)
+ 6002 FORMAT(A20,3(A30))
+ 6003 FORMAT(F20.3,3(F30.5))
  6004 FORMAT(A33, F5.2,A5)
  
       END PROGRAM
