@@ -197,7 +197,7 @@
 ! PRINT PHASE SHIFT AND WAVE FUNCTION
       WRITE(4,6001) IL, IJ
       WRITE(4,6002) 'ENERGY (MEV)', 'WAVE NUMBER (FM-1)', 
-     &              'PHASE SHIFT (RAD)', 'MOMENTUM SIN2DELTA',
+     &              'PHASE SHIFT (RAD)', 'SIN2DELTA',
      &              'SCATTERING LENGTH (FM-1)'
       DO IE = 1,NE
        WRITE(4,6003) IE*DE, SQRT(IE*DE*RM), DPS(IE), SIN(DPS(IE))**2, 
