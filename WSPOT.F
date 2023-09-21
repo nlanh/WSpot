@@ -4,7 +4,7 @@
       CHARACTER NOTE 
       DIMENSION DRI(NMAX),DV0(NMAX),DEXPF(NMAX),DERDEXPF(NMAX),
      &          DVSO(NMAX),DVCOU(NMAX),DVNU(NMAX),DVCE(NMAX),DPOT(NMAX),
-     &          WFB(NMAX),WFC(NMAX),DPS(NMAX),DWFC(NMAX)
+     &          WFB(NMAX),WFC(NMAX),WFR(NMAX),DPS(NMAX),DWFC(NMAX)
       DATA FSC,AMN,HC,RCOMP/137.036D0,931.494D0,197.327D0,1.4138/
 !      DATA FSC,AMN,HC,RCOMP/1.0D0,1.0D0,1.0D0,1.00/
       DATA PI/3.1415926535D0/ ,EPS/1D-5/
@@ -94,6 +94,8 @@
       READ(1,*) EMIN, DE, NE
       READ(1,*) NOTE
       READ(1,*) NEP
+      READ(1,*) NOTE
+      READ(1,*) NRP
  
 ! COMPUTE THE POTENTIAL
       UMAX = 0 
@@ -165,6 +167,7 @@
        QK = SQRT(EI*RM)
        CALL DEPHASE(N,H,DPOT,DWFC,EPS,DEP,IL,ETA,QK,RFIN)
         DPS(IE) = DEP 
+        WFR(IE) = DWFC(NRP)
        IF (IE.EQ.NEP) THEN
         DO I = 1, N
          WFC(I) = DWFC(I)
@@ -208,12 +211,19 @@
       WRITE(4,5003) 'R (fm)', 'PSI', 'PSI**2'
       DO I = 1, N
        WRITE(4,5004) I*H, DWFC(I), DWFC(I)**2
-      END DO 
+      END DO
+      WRITE(4,*) '**************************************************'
+      WRITE(4,6005) 'SCATTERING WAVE FUNCTION AT R = ', NRP*H, ' fm'
+      WRITE(4,5003) 'E (MeV)', 'PSI', 'PSI**2'
+      DO IE = 1,NE
+       WRITE(4,5004) IE*DE, WFR(IE), WFR(IE)**2
+      END DO
 
  6001 FORMAT('THE SINGLE-PARTICLE STATE: l =',I3, '; j =',I3)
  6002 FORMAT(A20,3(A20),A30)
  6003 FORMAT(F20.3,3(F20.5),E30.5)
  6004 FORMAT(A33, F5.2,A5)
+ 6005 FORMAT(A33, F8.3,A4)
  
       END PROGRAM
       
