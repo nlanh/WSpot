@@ -196,10 +196,11 @@
 
 ! PRINT PHASE SHIFT AND WAVE FUNCTION
       WRITE(4,6001) IL, IJ
-      WRITE(4,6002) 'ENERGY (MEV)', 'PHASE SHIFT (RAD)', 
-     &               'WAVE NUMBER (FM-1)', 'SCATTERING LENGTH (FM-1)'
+      WRITE(4,6002) 'ENERGY (MEV)', 'WAVE NUMBER (FM-1)', 
+     &              'PHASE SHIFT (RAD)', 'MOMENTUM SIN2DELTA',
+     &              'SCATTERING LENGTH (FM-1)'
       DO IE = 1,NE
-       WRITE(4,6003) IE*DE, DPS(IE), SQRT(IE*DE*RM), 
+       WRITE(4,6003) IE*DE, SQRT(IE*DE*RM), DPS(IE), SIN(DPS(IE))**2, 
      &               SQRT(IE*DE*RM)/TAN(DPS(IE))
       END DO
       WRITE(4,*) '**************************************************'
@@ -210,8 +211,8 @@
       END DO 
 
  6001 FORMAT('THE SINGLE-PARTICLE STATE: l =',I3, '; j =',I3)
- 6002 FORMAT(A20,3(A30))
- 6003 FORMAT(F20.3,2(F30.5),E30.5)
+ 6002 FORMAT(A20,3(A20),A30)
+ 6003 FORMAT(F20.3,3(F20.5),E30.5)
  6004 FORMAT(A33, F5.2,A5)
  
       END PROGRAM
