@@ -1,17 +1,17 @@
 #N      H     
  300    0.05 
 #A1     A2    Z1   Z2 (exact if integer, twice if half-integer)
- 16     1     8    0 
+ 16     1     8    1 
 #n   l   j
  0   0   1 
 #CENTRAL KEYPOT FOR BOUND STATES
- 0
+ 1
 #V0        V1        A0        R0        RC        Q
- -0.0      -0.       1e-8      0.        0.        1.000
+ -5.0      -0.       0.70      3.231     3.231     1.000
 #SPIN-ORBIT KEYPOT FOR BOUND STATES
- 0
+ 1
 #VS0       AS0       RS0   
- -0.       0.70      3.231   
+  5.       0.70      3.231   
 #EMIN      DE        NE
  0         0.01      2000
 #NE (PRINT SCATTERING WAVE FUNCTION AT E = NE*DE)

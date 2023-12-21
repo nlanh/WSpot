@@ -14,6 +14,7 @@
       OPEN(2, FILE='WSPOT.OUT', FORM='FORMATTED')
       OPEN(3, FILE='BOUND.OUT', FORM='FORMATTED')
       OPEN(4, FILE='SCATT.OUT', FORM='FORMATTED')
+      OPEN(5, FILE='NUMPOT.INP', FORM='FORMATTED', STATUS='OLD')
       
       PRINT *, 'THE CALCULATION FOR BOUND AND SCATTERING STATES'
       PRINT *, 'WRITTEN BY N.L.ANH AND B.M.LOC'
@@ -54,24 +55,36 @@
       WRITE(2,*)'THE POTENTIAL'
       READ(1,*) NOTE
       READ(1,*) KPOT
+      READ(1,*) NOTE
+      READ(1,*) V0, V1, A0, R0, RC, Q
+      
       IF (KPOT.EQ.0) THEN
-       READ(1,*) NOTE
-       READ(1,*) V0, V1, A0, R0, RC, Q
        PRINT*, 'CENTRAL POTENTIAL IS OF WS FORM' 
        WRITE(2,*)'CENTRAL POTENTIAL IS OF WS FORM'
        PRINT 3001, V0, V1, R0, A0, Q    
        WRITE(2,3001) V0, V1, R0, A0, Q    
       END IF
       
+      IF (KPOT.EQ.1) THEN
+       PRINT*, 'CENTRAL POTENTIAL IS READ FROM NUMPOT.INP' 
+       WRITE(2,*)'CENTRAL POTENTIAL IS READ FROM NUMPOT.INP'  
+      END IF
+      
       READ(1,*) NOTE
       READ(1,*) KSO
+      READ(1,*) NOTE
+      READ(1,*) VSO, ASO, RSO
+      
       IF (KSO.EQ.0) THEN
-       READ(1,*) NOTE
-       READ(1,*) VSO, ASO, RSO
        PRINT*, 'SPIN-ORBIT POTENTIAL IS OF DERIVATIVE OF WS'
        WRITE(2,*)'SPIN-ORBIT POTENTIAL IS OF DERIVATIVE OF WS'
        PRINT 3002, VSO, RSO, ASO 
        WRITE(2,3002) VSO, RSO, ASO  
+      END IF
+      
+      IF (KSO.EQ.1) THEN
+       PRINT*, 'SPIN-ORBIT POTENTIAL IS READ FROM NUMPOT.INP'
+       WRITE(2,*)'SPIN-ORBIT POTENTIAL IS READ FROM NUMPOT.INP'
       END IF
       
       IF (RC.GE.0.0000001) THEN
@@ -81,6 +94,27 @@
      &      'COULOMB POTENTIAL IS USED FOR UNIFORM CHARGED DISTRIBUTION'
        PRINT 3003, RC
        WRITE(2,3003) RC
+      END IF
+      
+      IF (KPOT.EQ.1.AND.KSO.EQ.0) THEN
+       READ(5,*) NREAD
+       DO I = 1, NREAD
+        READ(5,*) DV0(I)
+       END DO
+      END IF
+      
+      IF (KSO.EQ.1.AND.KPOT.EQ.0) THEN
+       READ(5,*) NREAD
+       DO I = 1, NREAD
+        READ(5,*) DVSO(I)
+       END DO
+      END IF
+      
+      IF (KPOT.EQ.1.AND.KSO.EQ.1) THEN
+       READ(5,*) NREAD
+       DO I = 1, NREAD
+        READ(5,*) DV0(I), DVSO(I)
+       END DO
       END IF
 
  3001 FORMAT('WITH V0 =', F8.2, ' MeV;     V1 =', F8.2, ' MeV;   R0 = ', 
@@ -141,21 +175,22 @@
       END DO
       
 !  PRINT POTENTIALS
-      WRITE(2,4001)'R (fm)', 'V0+V1 (MeV)', 'VSO*LSI (MeV)', 
+      WRITE(2,4001)'R (fm)', 'V0+V1 (MeV)', 'VSO (MeV)','VSO*LSI (MeV)', 
      &              'VNUCL (MeV)', 'VCOUL (MeV)', 'VTOTAL (MeV)', 
      &              'VCENTRI (MeV)', 'VEFF (MeV)'
       DO I = 1, N
-       WRITE(2,4002) DRI(I),DV0(I),DILS*DVSO(I), DVNU(I), DVCOU(I), 
-     &               DVNU(I)+DVCOU(I), DVCE(I)/RM, DPOT(I)/RM
+       WRITE(2,4002) DRI(I),DV0(I),DVSO(I),DILS*DVSO(I),DVNU(I), 
+     &               DVCOU(I),DVNU(I)+DVCOU(I),DVCE(I)/RM,DPOT(I)/RM
       END DO
       
- 4001 FORMAT(A10, 7(A15))
- 4002 FORMAT(F10.3, 7(F15.6))
+ 4001 FORMAT(A10, 8(A15))
+ 4002 FORMAT(F10.3, 8(F15.6))
       
 
 ! COMPUTE SINGLE-PARTICLE ENERGY 
       S2 = 0
       UMAX = 0.d0
+      WRITE(3,5001) N0, IL, IJ
       CALL NUM1L(N, H, EB, S2, DPOT, WFB, N0, EPS)
       EB = (EB + UMAX)/RM
 
@@ -176,7 +211,6 @@
       END DO  
       
 ! PRINT SINGLE-PARTICLE ENERGY
-      WRITE(3,5001) N0, IL, IJ
       IF(EB.GE.0) THEN
        PRINT *, 'THERE IS NO BOUND STATE'
        WRITE(3,*) 'THERE IS NO BOUND STATE'
